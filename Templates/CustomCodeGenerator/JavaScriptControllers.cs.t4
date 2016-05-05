@@ -1,0 +1,104 @@
+﻿<#@ template language="C#" #>
+<#@ output extension=".js" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="Microsoft.AspNet.Scaffolding.12.0" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.AspNet.Scaffolding.Core.Metadata" #>
+<#@ parameter name="ModelType" type="EnvDTE.CodeType" #>
+<#@ parameter type="Microsoft.AspNet.Scaffolding.Core.Metadata.ModelMetadata" name="ModelMetadata" #>
+<#
+    var AppId = ModelType.Name;
+#>
+ var  modules = modules || [];
+(function () {
+    'use strict';
+    modules.push('<#=AppId#>');
+
+    angular.module('<#=AppId#>',['ngRoute'])
+    .controller('<#=ModelType.Name#>_list', ['$scope', '$http','$location', function($scope, $http, $location){
+
+        $http.get('/Api/<#=ModelType.Name#>/',{params:$location.search()})
+        .then(function(response){$scope.data = response.data;});
+
+    }])
+    .controller('<#=ModelType.Name#>_details', ['$scope', '$http', '$routeParams', function($scope, $http, $routeParams){
+
+        $http.get('/Api/<#=ModelType.Name#>/' + $routeParams.id)
+        .then(function(response){$scope.data = response.data;});
+
+    }])
+    .controller('<#=ModelType.Name#>_create', ['$scope', '$http', '$routeParams', '$location', function($scope, $http, $routeParams, $location){
+
+        $scope.data = {__mode:'create'};
+        <#    foreach(var property in ModelMetadata.RelatedEntities){#>
+        $http.get('/Api/<#=property.ShortTypeName#>/')
+        .then(function(response){$scope.<#=property.ForeignKeyPropertyNames.FirstOrDefault()#>_options = response.data;});
+        <#    } #>
+
+        $scope.save = function(){
+            $http.post('/Api/<#=ModelType.Name#>/', $scope.data)
+            .then(function(response){ $location.path("<#=ModelType.Name#>"); });
+        }
+
+    }])
+    .controller('<#=ModelType.Name#>_edit', ['$scope', '$http', '$routeParams', '$location', function($scope, $http, $routeParams, $location){
+		$scope.data.__mode='edit';
+        $http.get('/Api/<#=ModelType.Name#>/' + $routeParams.id)
+        .then(function(response){$scope.data = response.data;});
+
+        <#    foreach(var property in ModelMetadata.RelatedEntities){#>
+        $http.get('/Api/<#=property.ShortTypeName#>/')
+        .then(function(response){$scope.<#=property.ForeignKeyPropertyNames.FirstOrDefault()#>_options = response.data;});
+        <#    } #>
+
+        $scope.save = function(){
+            $http.put('/Api/<#=ModelType.Name#>/' + $routeParams.id, $scope.data)
+            .then(function(response){ $location.path("<#=ModelType.Name#>"); });
+        }
+
+    }])
+    .controller('<#=ModelType.Name#>_delete', ['$scope', '$http', '$routeParams', '$location', function($scope, $http, $routeParams, $location){
+
+        $http.get('/Api/<#=ModelType.Name#>/' + $routeParams.id)
+        .then(function(response){$scope.data = response.data;});
+        $scope.save = function(){
+            $http.delete('/Api/<#=ModelType.Name#>/' + $routeParams.id, $scope.data)
+            .then(function(response){ $location.path("<#=ModelType.Name#>"); });
+        }
+
+    }])
+
+    .config(['$routeProvider', function ($routeProvider) {
+            $routeProvider
+            .when('/<#=ModelType.Name#>', {
+                title: '<#=ModelType.Name#> - List',
+                templateUrl: '/Static/<#=ModelType.Name#>_List',
+                controller: '<#=ModelType.Name#>_list'
+            })
+            .when('/<#=ModelType.Name#>/Create', {
+                title: '<#=ModelType.Name#> - Create',
+                templateUrl: '/Static/<#=ModelType.Name#>_Edit',
+                controller: '<#=ModelType.Name#>_create'
+            })
+            .when('/<#=ModelType.Name#>/Edit/:id', {
+                title: '<#=ModelType.Name#> - Edit',
+                templateUrl: '/Static/<#=ModelType.Name#>_Edit',
+                controller: '<#=ModelType.Name#>_edit'
+            })
+            .when('/<#=ModelType.Name#>/Delete/:id', {
+                title: '<#=ModelType.Name#> - Delete',
+                templateUrl: '/Static/<#=ModelType.Name#>_Delete',
+                controller: '<#=ModelType.Name#>_delete'
+            })
+            .when('/<#=ModelType.Name#>/:id', {
+                title: '<#=ModelType.Name#> - Details',
+                templateUrl: '/Static/<#=ModelType.Name#>_Details',
+                controller: '<#=ModelType.Name#>_details'
+            })
+    }])
+;
+
+})();

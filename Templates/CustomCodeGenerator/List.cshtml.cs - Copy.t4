@@ -1,0 +1,101 @@
+﻿<#@ template language="C#" #>
+<#@ output extension=".cshtml" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="Microsoft.AspNet.Scaffolding.12.0" #>
+<#@ ScaffoldingAssembly Processor="ScaffoldingAssemblyLoader" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.AspNet.Scaffolding.Core.Metadata" #>
+<#@ parameter type="EnvDTE.CodeType" name="ModelType" #>
+<#@ parameter type="Microsoft.AspNet.Scaffolding.Core.Metadata.ModelMetadata" name="ModelMetadata" #>
+<#
+    string pkName = GetPrimaryKeyName();
+    PushIndent("    ");
+#>
+@{
+    Layout = null;
+}
+<h2><#= ModelType.Name#></h2>
+<p>
+    <a href="#/<#=ModelType.Name#>/Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+    <tr>
+<#
+IEnumerable<PropertyMetadata> properties = ModelMetadata.Properties;
+foreach (PropertyMetadata property in properties) {
+    if (property.Scaffold ) {//&& !property.IsPrimaryKey && !property.IsForeignKey
+#>
+        <th>
+            <#= property.PropertyName #>
+        </th>
+<#
+    }
+}
+#>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="item in data">
+<#
+foreach (PropertyMetadata property in properties) {
+    if (property.Scaffold) {// && !property.IsPrimaryKey && !property.IsForeignKey
+#>
+        <td>
+<#
+        switch(property.AssociationDirection){
+            case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.None:
+#>
+            {{ item.<#=property.PropertyName #> }}
+<#
+                break;
+            case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.ManyToOne:
+#>
+                <a ng-href="#<#= property.ShortTypeName #>/{{item.<#= property.RelatedModel.ForeignKeyPropertyNames.First() #> }}" >
+                {{item.<#= property.PropertyName #>_<#= property.RelatedModel.DisplayPropertyName #>}}
+                </a>
+<#
+                break;
+            case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.OneToMany:
+#>
+                <a ng-href="#<#= property.ShortTypeName #>?<#=ModelType.Name#>={{item.<#= pkName #> }}" >
+                {{item.<#= property.PropertyName #>_Count}} <#=property.PropertyName#>
+                </a>
+<#
+                break;
+        }
+#>
+        </td>
+<#
+    }
+}
+#>
+        <td>
+<#
+if (pkName != null) {
+#>
+            <a ng-href="#/<#=ModelType.Name#>/Edit/{{item.<#= pkName #>}}">Edit</a> |
+            <a ng-href="#/<#=ModelType.Name#>/{{item.<#= pkName #>}}">Details</a> |
+            <a ng-href="#/<#=ModelType.Name#>/Delete/{{item.<#= pkName #>}}">Delete</a>
+<#
+} else {
+#>
+            <a href="#/Edit/item.pk">Edit</a> |
+            <a href="#/Details/item.pk">Details</a> |
+            <a href="#/Delete/item.pk">Delete</a>
+<#
+}
+#>
+        </td>
+    </tr>
+    </tbody>
+
+</table>
+<#
+    ClearIndent();
+#>
+<#@ include file="ModelMetadataFunctions.cs.include.t4" #>

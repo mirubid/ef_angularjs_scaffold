@@ -1,0 +1,83 @@
+﻿<#@ template debug="true" HostSpecific="True" language="C#" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="Microsoft.AspNet.Scaffolding.12.0" #>
+<#@ ScaffoldingAssembly Processor="ScaffoldingAssemblyLoader" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<#@ parameter type="Microsoft.AspNet.Scaffolding.Core.Metadata.ModelMetadata" name="ModelMetadata" #>
+<#@ parameter type="System.String" name="ModelTypeName" #>
+<#@ parameter type="System.String" name="Namespace" #>
+<#@ parameter type="System.Collections.Generic.IDictionary<System.String, System.Boolean>" name="NullableValueTypes" #>
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.Description;
+
+namespace <#= Namespace #>
+{
+	public class <#= ModelTypeName #>DTO
+    {
+<#
+foreach (Microsoft.AspNet.Scaffolding.Core.Metadata.PropertyMetadata property in ModelMetadata.Properties) {
+	
+    if (property.Scaffold) {
+		switch(property.AssociationDirection){
+			case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.None:
+#>
+		public <#=property.TypeName.Replace("+",".")#><#= NullableValueTypes[property.PropertyName] ? "?" : "" #> <#= property.PropertyName #> { get; set; }
+<#
+				break;
+			case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.ManyToOne:
+#>
+		public string <#= property.PropertyName #>_<#= property.RelatedModel.DisplayPropertyName #> { get; set; }
+<#
+				break;
+			case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.OneToMany:
+#>
+		public int <#= property.PropertyName #>_Count { get; set; }
+<#
+				break;
+        }
+    }
+}
+#>
+
+        public static System.Linq.Expressions.Expression<Func< <#= ModelTypeName #>,  <#= ModelTypeName #>DTO>> SELECT =
+            x => new  <#= ModelTypeName #>DTO
+            {
+<#
+foreach (Microsoft.AspNet.Scaffolding.Core.Metadata.PropertyMetadata property in ModelMetadata.Properties) {
+    if (property.Scaffold) {
+		switch(property.AssociationDirection){
+			case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.None:
+#>
+                <#= property.PropertyName #> = x.<#= property.PropertyName #>,
+<#
+				break;
+			case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.ManyToOne:
+#>
+                <#= property.PropertyName #>_<#= property.RelatedModel.DisplayPropertyName #> = x.<#= property.PropertyName #>.<#= property.RelatedModel.DisplayPropertyName #>,
+<#
+				break;
+			case Microsoft.AspNet.Scaffolding.Core.Metadata.AssociationDirection.OneToMany:
+#>
+                <#= property.PropertyName #>_Count = x.<#= property.PropertyName #>.Count(),
+<#
+				break;
+        }
+    }
+}
+#>
+            };
+
+	}
+}

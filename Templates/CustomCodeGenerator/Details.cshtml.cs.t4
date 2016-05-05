@@ -1,0 +1,82 @@
+﻿<#@ template language="C#" #>
+<#@ output extension=".cshtml" #>
+<#@ template language="C#" #>
+<#@ output extension=".cshtml" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="Microsoft.AspNet.Scaffolding.12.0" #>
+<#@ ScaffoldingAssembly Processor="ScaffoldingAssemblyLoader" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.AspNet.Scaffolding.Core.Metadata" #>
+<#@ parameter type="EnvDTE.CodeType" name="ModelType" #>
+<#@ parameter type="Microsoft.AspNet.Scaffolding.Core.Metadata.ModelMetadata" name="ModelMetadata" #>
+@{
+    Layout = null;
+}
+<#
+    string pkName = GetPrimaryKeyName()??"NO_PRIMARY_KEY";
+    PushIndent("    ");
+#>
+<h2><#= ModelType.Name#> Details Test</h2>
+    <div class="form-horizontal">
+        <ul id="validationSummary"></ul>
+<#
+foreach (PropertyMetadata property in ModelMetadata.Properties) {
+    if (property.Scaffold ) { //&& !property.IsForeignKey && !property.IsPrimaryKey
+            
+#>
+        <div class="form-group">
+            <label for="<#= property.PropertyName #>" class = "control-label col-md-2">
+<#
+            if (property.IsAssociation) {
+#>
+             <#= GetAssociationName(property) #>
+<#
+            } else {
+#>
+            <#= property.PropertyName #>
+<#
+            }
+#>
+            </label>
+            <div class="col-md-10">
+<#
+            if (property.IsAssociation) {
+                if(property.IsIndependentAssociation || property.RelatedModel==null){
+#>
+                <a ng-href="#<#= property.ShortTypeName #>?<#=ModelType.Name#>={{data.<#= pkName #> }}" >
+                {{data.<#= property.PropertyName #>_Count}}
+                </a>
+<#
+                } else {
+#>
+                <a ng-href="#<#= property.ShortTypeName #>/{{<#= property.PropertyName #> }}" >
+                {{data.<#= property.PropertyName #>_<#= property.RelatedModel.DisplayPropertyName #>}}
+                </a>
+<#
+                }
+            } else {
+#>
+                {{data.<#= property.PropertyName #>}}
+<#
+            }
+#>
+            </div>
+        </div>
+
+<#
+    }
+}
+#>
+       
+    </div>
+
+<div>
+    <a href="#/<#= ModelType.Name#>">Back to List</a>
+</div>
+<#
+    ClearIndent();
+#>
+<#@ include file="ModelMetadataFunctions.cs.include.t4" #>

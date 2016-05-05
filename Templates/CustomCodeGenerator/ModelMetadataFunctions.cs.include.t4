@@ -1,0 +1,70 @@
+﻿
+<#+
+// These functionalities needs to move to core.
+
+RelatedModelMetadata GetRelatedModelMetadata(PropertyMetadata property){
+    
+    if(ModelMetadata.RelatedEntities != null)
+    {
+		return ModelMetadata.RelatedEntities.FirstOrDefault(item=>item.AssociationPropertyName==property.PropertyName);
+        //relatedProperties = ModelMetadata.RelatedEntities.ToDictionary(item => item.AssociationPropertyName);
+    }
+    
+
+    return null;
+}
+
+// A foreign key, e.g. CategoryID, will have an association name of Category
+string GetAssociationName(PropertyMetadata property) {
+    RelatedModelMetadata propertyModel = GetRelatedModelMetadata(property);
+    return ( (propertyModel != null && propertyModel.AssociationPropertyName!=null) ? propertyModel.AssociationPropertyName : property.PropertyName) ?? "AssociationNameIsNull";
+}
+
+// A foreign key, e.g. CategoryID, will have a value expression of Category.CategoryID
+string GetValueExpression(PropertyMetadata property) {
+    RelatedModelMetadata propertyModel = GetRelatedModelMetadata(property);
+    return propertyModel != null ? propertyModel.AssociationPropertyName + "_" + propertyModel.DisplayPropertyName : property.PropertyName;
+}
+
+// This will return the primary key property name, if and only if there is exactly
+// one primary key. Returns null if there is no PK, or the PK is composite.
+string GetPrimaryKeyName() {
+    return (ModelMetadata.PrimaryKeys != null && ModelMetadata.PrimaryKeys.Count() == 1) ? ModelMetadata.PrimaryKeys[0].PropertyName : null;
+}
+
+string[] GetPrimaryKeyNames(){
+	if( ModelMetadata.PrimaryKeys==null)return null;
+	return 
+		ModelMetadata.PrimaryKeys
+			.Select(e=>e.PropertyName) 
+			.ToArray();
+}
+string RelatedModelQuery(RelatedModelMetadata related){
+	if(related==null)return string.Empty;
+	return String.Join("&", related.ForeignKeyPropertyNames.Select(e=>string.Format("{0}={{{{item.{0}}}}}",e)));
+}
+bool IsPropertyGuid(PropertyMetadata property) {
+    return String.Equals("System.Guid", property.TypeName, StringComparison.OrdinalIgnoreCase);
+}
+
+
+
+public RelatedModelMetadata FK_GetRelatedModelMetadata(PropertyMetadata property)
+{
+    if (ModelMetadata.RelatedEntities != null)
+    {
+		return ModelMetadata.RelatedEntities.FirstOrDefault(item=>item.ForeignKeyPropertyNames.Contains(property.PropertyName));
+        //relatedProperties = ModelMetadata.RelatedEntities.ToDictionary(item => item.ForeignKeyPropertyNames.FirstOrDefault());
+    }
+    return null;
+}
+
+// A foreign key, e.g. CategoryID, will have an association name of Category
+public string FK_GetAssociationName(PropertyMetadata property)
+{
+    RelatedModelMetadata propertyModel = FK_GetRelatedModelMetadata(property);
+    return propertyModel != null ? propertyModel.AssociationPropertyName : property.PropertyName;
+}
+
+
+#>

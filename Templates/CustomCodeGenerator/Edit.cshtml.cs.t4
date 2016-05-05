@@ -1,0 +1,94 @@
+﻿<#@ template language="C#" #>
+<#@ output extension=".cshtml" #>
+<#@ template language="C#" #>
+<#@ output extension=".cshtml" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="Microsoft.AspNet.Scaffolding.12.0" #>
+<#@ ScaffoldingAssembly Processor="ScaffoldingAssemblyLoader" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.AspNet.Scaffolding.Core.Metadata" #>
+<#@ parameter type="EnvDTE.CodeType" name="ModelType" #>
+<#@ parameter type="Microsoft.AspNet.Scaffolding.Core.Metadata.ModelMetadata" name="ModelMetadata" #>
+@{
+    Layout = null;
+}
+<#
+    PushIndent("    ");
+#>
+<h2><#= ModelType.Name#></h2>
+<form name="theForm">
+    <div class="form-horizontal">
+        <ul id="validationSummary"></ul>
+<#
+foreach (PropertyMetadata property in ModelMetadata.Properties) {
+    if (property.Scaffold && !property.IsAssociation) {
+
+#>
+        <div class="form-group">
+<#
+            if (property.IsForeignKey) {
+#>
+            <label for="<#= property.PropertyName #>" class = "control-label col-md-2"> <#= FK_GetAssociationName(property) #> </label>
+<#
+            } else {
+#>
+            <label for="<#= property.PropertyName #>" class = "control-label col-md-2"> <#= property.PropertyName #> </label>
+<#
+            }
+#>
+            <div class="col-md-10">
+<#
+            if (property.IsForeignKey) {
+#>
+                <select ng-model="data.<#= property.PropertyName #>" id="<#= property.PropertyName #>"  class="form-control"
+                        ng-options="option.Id as option.Name for option in <#= property.PropertyName #>_options">
+                    <option value="">-- choose <#= FK_GetAssociationName(property) #> --</option>
+                </select>
+<#
+            } else {
+				if(!property.IsPrimaryKey && !property.IsReadOnly){
+#>
+                <input type="<#= property.ShortTypeName == "bool" ? "checkbox" : "text" #>" ng-model="data.<#= property.PropertyName #>" id="<#= property.PropertyName #>"  class="form-control"/>
+<#
+				}else if(property.IsPrimaryKey && property.TypeName == "System.String"){
+#>
+					<span ng-if="data.__mode==='create'">
+                        <input type="text" ng-model="data.<#= property.PropertyName #>" id="<#= property.PropertyName #>" class="form-control" />
+                    </span>
+					<span ng-if="data.__mode!=='create'" ng-bind="data.<#=property.PropertyName #>"></span>
+<#
+				}else{
+#>
+				
+                <span ng-bind="data.<#=property.PropertyName #>"></span>
+<#				
+				}
+            }
+#>
+                <div id="validation_for_<#= property.PropertyName #>"></div>
+            </div>
+        </div>
+
+<#
+
+    }
+}
+#>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" value="Save" class="btn btn-default" ng-click="save()" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a href="#/<#= ModelType.Name#>">Back to List</a>
+</div>
+<#
+    ClearIndent();
+#>
+<#@ include file="ModelMetadataFunctions.cs.include.t4" #>
